@@ -1,0 +1,94 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+	<meta charset="UTF-8" />
+	<title>Phaser - Making your first game, part 1</title>
+	<script type="text/javascript" src="phaser.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+
+function preload() {
+	game.load.image('background','background.png');
+	game.load.spritesheet('player', 'monsterFinal.png', 50, 49);
+	game.load.image('bacon','bacon.png');
+	game.load.image('salad','big_salad.png');
+	game.load.image('salmonLemon','cedar_plank_salmon.png');
+	game.load.image('salmon','salmon.png');
+	game.load.image('ribs','ribs.png');
+
+}
+
+var player;
+var cursors;
+var background;
+var jump;
+var food;
+var weight = 10;
+
+function create() {
+	game.world.setBounds(0, 0, 2560, 1536);
+	background = game.add.sprite(0, 0, 'background');
+	player = game.add.sprite(200, 200, 'player');
+	player.body.bounce.y = 0.2;
+	player.body.gravity.y = 6;
+	player.body.collideWorldBounds = true;
+	
+	player.animations.add('left', [0, 1, 2, 3, 4], 10, true);
+	player.animations.add('right', [5, 6, 7, 8, 9], 10, true);
+	game.camera.follow(player);
+
+	//group of food
+	food = game.add.emitter();
+	//create 7 items of food (bacon)
+	for(var i=0; i<4; i++){
+		var foodItem = food.create(Math.random() * (game.world.width-100), 0, 'bacon');
+		foodItem.body.gravity.y = 3;
+		foodItem.body.bounce.y = 0.1;
+		foodItem.body.collideWorldBounds = true;
+	}
+
+	//movements enabled
+	cursors = game.input.keyboard.createCursorKeys();
+	jump = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
+}
+
+function update() {
+
+	player.body.velocity.x = 0;
+
+	if (cursors.left.isDown){
+		player.animations.play('left');
+		player.body.velocity.x-=120;
+	}
+	else if (cursors.right.isDown){
+		player.animations.play('right');
+		player.body.velocity.x+=120;
+	}
+	else
+    {
+        player.animations.stop();
+        player.frame = 5;
+    }
+    if (jump.isDown){
+		player.body.velocity.y -= 100;
+	}
+	else if (!jump.isDown){
+		player.body.velocity.y -= 0;	
+	}
+
+}
+
+</script>
+
+</body>
+</html>
