@@ -18,75 +18,390 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create
 
 function preload() {
 	game.load.image('background','background.png');
-	game.load.spritesheet('player', 'monsterFinal.png', 50, 49);
+	game.load.spritesheet('player', 'monster.png', 50, 41);
 	game.load.image('bacon','bacon.png');
 	game.load.image('salad','big_salad.png');
 	game.load.image('salmonLemon','cedar_plank_salmon.png');
 	game.load.image('salmon','salmon.png');
 	game.load.image('ribs','ribs.png');
+	game.load.image('platform', 'platform.png');
+	game.load.image('dead', 'graveStone.png');
+	game.load.image('sign', 'deadEnd.png');
 
 }
-
 var player;
 var cursors;
 var background;
 var jump;
+var deltaX;
+var deltaY;
+
 var food;
-var weight = 10;
+var ribs;
+var bacon;
+var salad;
+var salmon;
+var fish;
+
+var platforms;
+var signs;
+var weight = 2;
+//var weightText;
+var grave;
+
 
 function create() {
-	game.world.setBounds(0, 0, 2560, 1536);
-	background = game.add.sprite(0, 0, 'background');
-	player = game.add.sprite(200, 200, 'player');
+
+	createLevel();	
+	foodSpawn();
+	weight = 3;
+	weightText = game.add.text(-100, -70, 'weight: ' + weight);
+	player = game.add.sprite(20, 20, 'player');
 	player.body.bounce.y = 0.2;
 	player.body.gravity.y = 6;
+	player.body.setSize(26, 28, 12, 10);
 	player.body.collideWorldBounds = true;
-	
 	player.animations.add('left', [0, 1, 2, 3, 4], 10, true);
 	player.animations.add('right', [5, 6, 7, 8, 9], 10, true);
 	game.camera.follow(player);
+	player.addChild(weightText);
 
-	//group of food
-	food = game.add.emitter();
-	//create 7 items of food (bacon)
-	for(var i=0; i<4; i++){
-		var foodItem = food.create(Math.random() * (game.world.width-100), 0, 'bacon');
-		foodItem.body.gravity.y = 3;
-		foodItem.body.bounce.y = 0.1;
-		foodItem.body.collideWorldBounds = true;
-	}
+	testText = game.add.text(-100, -170, 'weight: 2', { font: '32px arial', fill: '#000' });
 
 	//movements enabled
 	cursors = game.input.keyboard.createCursorKeys();
 	jump = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-
 }
 
 function update() {
+	game.physics.collide(player, platforms);
+	game.physics.collide(food, platforms);
+	game.physics.collide(platforms, platforms);
+	game.physics.collide(food, food);
 
+	//eating food
+	game.physics.overlap(player, food, eatFood, null, this);
+		
 	player.body.velocity.x = 0;
 
 	if (cursors.left.isDown){
 		player.animations.play('left');
-		player.body.velocity.x-=120;
+		player.body.velocity.x-=120; //* deltaX;
 	}
 	else if (cursors.right.isDown){
 		player.animations.play('right');
-		player.body.velocity.x+=120;
+		player.body.velocity.x+=120;// * deltaX;
 	}
 	else
     {
         player.animations.stop();
         player.frame = 5;
     }
-    if (jump.isDown){
-		player.body.velocity.y -= 100;
+    if (jump.isDown && player.body.touching.down){
+		player.body.velocity.y -= 350;// * deltaY;
 	}
 	else if (!jump.isDown){
 		player.body.velocity.y -= 0;	
 	}
 
 }
+
+function createLevel(){
+	game.world.setBounds(0, 0, 2560, 1536);
+	background = game.add.sprite(0, 0, 'background');
+	
+	platforms = game.add.group();
+	var floor = platforms.create(0, game.world.height-64, 'platform');
+	floor.scale.setTo(game.world.width, 2);
+	floor.body.immovable = true;
+
+	//var sign = platforms.create(1555, 27, 'sing');
+	//"static" ledges
+	var ledge1 = platforms.create(0, 100, 'platform');
+	ledge1.body.immovable = true;
+	var ledge2 = platforms.create(110, 514, 'platform');
+	ledge2.body.immovable = true;
+	var ledge3 = platforms.create(338, 239, 'platform');
+	ledge3.body.immovable = true;
+	var ledge4 = platforms.create(238, 658, 'platform');
+	ledge4.body.immovable = true;
+	var ledge5 = platforms.create(416, 558, 'platform');
+	ledge5.body.immovable = true;
+	var ledge6 = platforms.create(436, 384, 'platform');
+	ledge6.body.immovable = true;
+	var ledge7 = platforms.create(814, 239, 'platform');
+	ledge7.body.immovable = true;
+	var ledge8 = platforms.create(992, 373, 'platform');
+	ledge8.body.immovable = true;
+	ledge8.scale.setTo(2, 0.5);
+	var ledge9 = platforms.create(1152, 200, 'platform');
+	ledge9.body.immovable = true;
+	var ledge10 = platforms.create(788, 530, 'platform');
+	ledge10.body.immovable = true; 
+	var ledge11 = platforms.create(749, 938, 'platform');
+	ledge11.body.immovable = true;
+	var ledge12 = platforms.create(0, 900, 'platform');
+	ledge12.body.immovable = true;
+	ledge12.scale.setTo(3, 0.7);
+	var ledge13 = platforms.create(68, 1020, 'platform');
+	ledge13.body.immovable = true;
+	var ledge14 = platforms.create(0, 1200, 'platform');
+	ledge14.body.immovable = true;
+	var ledge15 = platforms.create(300, 1140, 'platform');
+	ledge15.body.immovable = true;
+	ledge15.scale.setTo(1.5, 0.6);
+	var ledge16 = platforms.create(150, 1350, 'platform');
+	ledge16.body.immovable = true;
+	ledge15.scale.setTo(1.5, 0.6);
+	var ledge17 = platforms.create(364, 1245, 'platform');
+	ledge17.body.immovable = true;
+	ledge17.scale.setTo(0.3, 0.3);
+	var ledge18 = platforms.create(563, 1245, 'platform');
+	ledge18.body.immovable = true;
+	ledge18.scale.setTo(0.3, 0.3);
+	var ledge19 = platforms.create(673, 1245, 'platform');
+	ledge19.body.immovable = true;
+	ledge19.scale.setTo(0.3, 0.3);
+	var ledge20 = platforms.create(783, 1125, 'platform');
+	ledge20.body.immovable = true;
+	ledge20.scale.setTo(0.3, 0.3);
+	var ledge21 = platforms.create(1004, 1035, 'platform');
+	ledge21.body.immovable = true;
+	ledge21.scale.setTo(0.3, 0.3);
+	var ledge22 = platforms.create(955, 1105, 'platform');
+	ledge22.body.immovable = true;
+	ledge22.scale.setTo(0.3, 0.3);
+	var ledge23 = platforms.create(924, 1225, 'platform');
+	ledge23.body.immovable = true;
+	ledge23.scale.setTo(0.3, 0.3);
+	var ledge24 = platforms.create(1340, 1345, 'platform');
+	ledge24.body.immovable = true;
+	var ledge25 = platforms.create(1224, 1200, 'platform');
+	ledge25.body.immovable = true;
+	var ledge26 = platforms.create(1024, 1275, 'platform');
+	ledge26.body.immovable = true;
+	ledge26.scale.setTo(0.4, 0.4);
+	var ledge27 = platforms.create(783, 1312, 'platform');
+	ledge27.body.immovable = true;
+	ledge27.scale.setTo(0.5, 1.5);
+	var ledge28 = platforms.create(1417, 1105, 'platform');
+	ledge28.body.immovable = true;
+	ledge28.scale.setTo(0.1, 0.1);
+	var ledge29 = platforms.create(1656, 982, 'platform');
+	ledge29.body.immovable = true;
+	var ledge30 = platforms.create(1776, 1112, 'platform');
+	ledge30.body.immovable = true;
+	var ledge31 = platforms.create(1720, 1225, 'platform');
+	ledge31.body.immovable = true;
+	ledge31.scale.setTo(0.5, 0.5);
+	var ledge32 = platforms.create(1581, 1335, 'platform');
+	ledge32.body.immovable = true;
+	ledge31.scale.setTo(1, 0.2);
+	var ledge33 = platforms.create(1881, game.world.height - 256, 'platform');
+	ledge33.body.immovable = true;
+	var ledge34 = platforms.create(2109, game.world.height - 256, 'platform');
+	ledge34.body.immovable = true;
+	var ledge35 = platforms.create(2309, 1300, 'platform');
+	ledge35.body.immovable = true;
+	ledge35.scale.setTo(0.2, 0.2);
+	var ledge36 = platforms.create(game.world.width - 128, game.world.height - 330, 'platform');
+	ledge36.body.immovable = true;
+	var ledge37 = platforms.create(2309, 1200, 'platform');
+	ledge37.body.immovable = true;
+	ledge37.scale.setTo(0.2, 0.2);
+	var ledge38 = platforms.create(2209, 1100, 'platform');
+	ledge38.body.immovable = true;
+	ledge38.scale.setTo(0.2, 0.2);
+	var ledge39 = platforms.create(2309, 1000, 'platform');
+	ledge39.body.immovable = true;
+	ledge39.scale.setTo(0.2, 0.2);
+	var ledge40 = platforms.create(2259, 900, 'platform');
+	ledge40.body.immovable = true;
+	ledge40.scale.setTo(0.2, 0.2);//stopped
+	var ledge41 = platforms.create(game.world.width -328, 608, 'platform');
+	ledge41.body.immovable = true;
+	var ledge42 = platforms.create(game.world.width -526, 530, 'platform');
+	ledge42.body.immovable = true;
+	var ledge43 = platforms.create(game.world.width -724, 430, 'platform');
+	ledge43.body.immovable = true;
+	var ledge44 = platforms.create(game.world.width -972, 300, 'platform');
+	ledge44.body.immovable = true;
+	var ledge45 = platforms.create(game.world.width -940, 200, 'platform');
+	ledge45.body.immovable = true;
+	ledge45.scale.setTo(0.5, 0.2);
+	var ledge46 = platforms.create(game.world.width -386, 430, 'platform');
+	ledge46.body.immovable = true;
+	ledge46.scale.setTo(0.3, 0.2);
+	var ledge47 = platforms.create(game.world.width -306, 360, 'platform');
+	ledge47.body.immovable = true;
+	ledge47.scale.setTo(0.3, 0.2);
+	var ledge48 = platforms.create(game.world.width -400, 200, 'platform');
+	ledge48.body.immovable = true;
+	ledge48.scale.setTo(0.3, 0.2);
+	var ledge49 = platforms.create(game.world.width -692, 200, 'platform');
+	ledge49.body.immovable = true;
+	ledge49.scale.setTo(0.5, 0.2);
+	var ledge50 = platforms.create(game.world.width -564, 200, 'platform');
+	ledge50.body.immovable = true;
+	ledge50.scale.setTo(0.5, 0.2);
+	var ledge51 = platforms.create(game.world.width -128, 120, 'platform');
+	ledge51.body.immovable = true;
+	var ledge52 = platforms.create(game.world.width -258, 190, 'platform');
+	ledge52.body.immovable = true;
+	ledge52.scale.setTo(0.1, 0.1);
+	
+	
+	var longledge1 = platforms.create(0, 768, 'platform');
+	longledge1.scale.setTo(6, 1);
+	longledge1.body.immovable = true;
+	var longledge2 = platforms.create(813, 768, 'platform');
+	longledge2.scale.setTo(6, 1);
+	longledge2.body.immovable = true;
+	var longledge3 = platforms.create(1517, 80, 'platform');
+	longledge3.scale.setTo(0.5, 13);
+	longledge3.body.immovable = true;
+	var longledge3 = platforms.create(1517, 982, 'platform');
+	longledge3.scale.setTo(0.5, 7);
+	longledge3.body.immovable = true;
+	var longledge4 = platforms.create(1581, 768, 'platform');
+	longledge4.scale.setTo(5, 1);
+	longledge4.body.immovable = true;
+	var longledge5 = platforms.create(game.world.width -128, 768, 'platform');
+	longledge5.body.immovable = true;	
+
+	//falling ledges
+	var trapledge1 = platforms.create(602, 179, 'platform');
+	trapledge1.body.immovable = false;
+	trapledge1.scale.setTo(0.2, 0.5);
+	var trapledge2 = platforms.create(474, 1245, 'platform');
+	trapledge2.body.immovable = false;
+	trapledge2.scale.setTo(0.3, 0.3);
+	var trapledge3 = platforms.create(884, 1275, 'platform');
+	trapledge3.body.immovable = false;
+	trapledge3.scale.setTo(0.3, 0.3);
+	var trapledge4 = platforms.create(1467, 1005, 'platform');
+	trapledge4.body.immovable = false;
+	trapledge4.scale.setTo(0.1, 0.1);
+	var trapledge5 = platforms.create(2109, 1000, 'platform');
+	trapledge5.body.immovable = false;
+	trapledge5.scale.setTo(0.2, 0.2);
+	var trapledge6 = platforms.create(game.world.width -756, 200, 'platform');
+	trapledge6.body.immovable = false;
+	trapledge6.scale.setTo(0.5, 0.2);
+	var trapledge7 = platforms.create(game.world.width -628, 200, 'platform');
+	trapledge7.body.immovable = false;
+	trapledge7.scale.setTo(0.5, 0.2);
+}
+
+function foodSpawn(){
+	food = game.add.group();
+
+	for(var i=3; i < Math.random()*10 + 4; i++)
+	{
+		bacon = food.create(Math.random() * (game.world.width-100), Math.random()*game.world.height - 128, 'bacon');
+		bacon.body.gravity.y = 3;
+		bacon.body.bounce.y = 0;
+		bacon.body.collideWorldBounds = true;
+	}
+	for(var i=10; i < Math.random()*20 + 11; i++)
+	{
+		salad = food.create(Math.random() * (game.world.width-100), 0, 'salad');
+		salad.body.gravity.y = 2;
+		salad.body.bounce.y = 0.01;
+		salad.body.collideWorldBounds = true;
+	}
+	for(var i=1; i < Math.random()*10 + 2; i++)
+	{
+		salmon = food.create(Math.random() * (game.world.width-100), 0, 'salmonLemon');
+		salmon.body.gravity.y = 3;
+		salmon.body.bounce.y = 0.1;
+		salmon.body.collideWorldBounds = true;
+	}
+	for(var i=6; i < Math.random()*10 + 7; i++)
+	{
+		fish = food.create(Math.random() * (game.world.width-100), 0, 'salmon');
+		fish.body.gravity.y = 3;
+		fish.body.bounce.y = 0.1;
+		fish.body.collideWorldBounds = true;
+	}
+	for(var i=1; i < 3; i++)
+	{
+		ribs = food.create(Math.random() * (game.world.width-100), 0, 'ribs');
+		ribs.body.gravity.y = 3;
+		ribs.body.bounce.y = 0.1;
+		ribs.body.collideWorldBounds = true;
+	}
+
+
+}
+
+function eatFood(player, food) {
+	food.kill();
+	if (food.key === "ribs"){
+		weight = weight + 5;
+		weightText.content = 'weight: ' + weight;
+		grow();
+	}
+	else if (food.key === "salad"){
+		weight = weight + 0.5;
+		weightText.content = 'weight: ' + weight;
+		grow();	
+	}
+	else if (food.key === "salmon"){
+		weight = weight + 4;
+		weightText.content = 'weight: ' + weight;
+		grow();	
+	}
+	else if (food.key === "fish"){
+		weight = weight + 1;
+		weightText.content = 'weight: ' + weight;
+		grow();	
+	}
+	else if (food.key === "bacon"){
+		weight = weight + 2;
+		weightText.content = 'weight: ' + weight;
+		grow();	
+	}
+
+	
+}
+function grow(){
+	if (weight == 1){
+		player.scale.setTo(0.25, 0.25);
+		deltaX = 0.8;
+		deltaY = 0.8;
+	}
+	else if(weight >1 && weight <4){
+		player.scale.setTo(0.75, 0.75);	
+		deltaX = 1.5;
+		deltaY = 1.5;
+	}
+	else if(weight >3 && weight <7){
+		player.scale.setTo(1, 1);	
+		deltaX = 1;
+		deltaY = 1;
+	}
+	else if(weight >6 && weight <9){
+		player.scale.setTo(1.5, 1.5);
+		deltaX = 1.2;
+		deltaY = 1.2;	
+	}
+	else if(weight == 9){
+		player.scale.setTo(2, 2);
+		deltaX = 0.8;
+		deltaY = 0.8;	
+	}
+
+}
+function youDead(){
+	player.animations.stop();
+	var positionX = player.body.x;
+	var positionY = player.body.y;
+	player.kill();
+	grave = game.add.sprite(positionX, positionY, 'dead');
+	
+}
+
 
 </script>
 
