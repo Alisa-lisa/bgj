@@ -33,8 +33,8 @@ var player;
 var cursors;
 var background;
 var jump;
-var deltaX;
-var deltaY;
+var deltaX = 100;
+var deltaY = 350;
 
 var food;
 var ribs;
@@ -57,6 +57,7 @@ function create() {
 	weight = 3;
 	weightText = game.add.text(-100, -70, 'weight: ' + weight);
 	player = game.add.sprite(20, 20, 'player');
+	player.scale.setTo(0.8, 0.8);
 	player.body.bounce.y = 0.2;
 	player.body.gravity.y = 6;
 	player.body.setSize(26, 28, 12, 10);
@@ -82,19 +83,23 @@ function update() {
 	//eating food
 	game.physics.overlap(player, food, eatFood, null, this);
 
+
 	player.body.velocity.x = 0;
+
+	
 		
 	if (cursors.left.isDown)
     {
         //  Move to the left
-        player.body.velocity.x = -150;
+        player.body.velocity.x = -deltaX;
+        console.log(player.body.velocity.x);
 
         player.animations.play('left');
     }
     else if (cursors.right.isDown)
     {
         //  Move to the right
-        player.body.velocity.x = 150;
+        player.body.velocity.x = deltaX;
 
         player.animations.play('right');
     }
@@ -103,14 +108,15 @@ function update() {
         //  Stand still
         player.animations.stop();
 
-        player.frame = 4;
+        player.frame = 5;
     }
     
     //  Allow the player to jump if they are touching the ground.
     if (jump.isDown && player.body.touching.down)
     {
-    	console.log("jump");
-        player.body.velocity.y = -360;
+    	
+    	player.body.velocity.y = -deltaY;
+    	console.log(player.body.velocity.y);
     }
 }
 
@@ -355,41 +361,54 @@ function eatFood(player, food) {
 		weight = weight - 0.5;
 		weightText.content = 'weight: ' + weight;
 		grow();	
+		
 	}
 	else if (food.key === "salmonLemon"){
 		weight = weight + 2;
 		weightText.content = 'weight: ' + weight;
 		grow();	
+		
 	}
 	else if (food.key === "salmon"){
 		weight = weight + 1;
 		weightText.content = 'weight: ' + weight;
 		grow();	
+		
 	}
 	else if (food.key === "bacon"){
 		weight = weight + 1;
 		weightText.content = 'weight: ' + weight;
 		grow();	
+		
 	}
 
 	
 }
 function grow(){
-	if (weight == 1){
-		player.scale.setTo(0.25, 0.25);
+	if (weight >= 0 && weight <=4){
+		player.scale.setTo(0.8, 0.8);
+		deltaX = 100;
+		deltaY = 330;
 	}
-	else if(weight >1 && weight <4){
-		player.scale.setTo(0.75, 0.75);	
-	}
-	else if(weight >3 && weight <7){
+	else if(weight >=5 && weight <=8){
 		player.scale.setTo(1, 1);	
+		deltaX = 200;
+		deltaY = 450;
 	}
-	else if(weight >6 && weight <9){
-		player.scale.setTo(1.25, 1.25);
+	else if(weight >= 9 && weight <=12){
+		player.scale.setTo(1.2, 1.2);
+		deltaX = 165;
+		deltaY = 400;	
 	}
-	else if(weight == 9){
+	else if(weight >= 13 && weight <= 16){
 		player.scale.setTo(1.5, 1.5);
+		deltaX = 130;
+		deltaY = 330;
 	}
+	else if(weight >= 17){
+		youDead();
+	}
+
 
 
 }
