@@ -25,37 +25,39 @@ function preload() {
 	game.load.image('salmon','salmon.png');
 	game.load.image('ribs','ribs.png');
 	game.load.image('platform', 'platform.png');
-	game.load.image('dead', 'graveStone.png');
+	game.load.image('dead', 'ghost.png');
 	game.load.image('sign', 'deadEnd.png');
+	game.load.image('key', 'key.png');
+	game.load.image('door', 'door.png');
 
 }
+var jumpcounter = 0;
+var timer;
 var player;
+var door;
 var cursors;
 var background;
 var jump;
 var deltaX = 100;
 var deltaY = 350;
-
+var key;
+var keyText;
+var counter = 0;
 var food;
-var ribs;
-var bacon;
-var salad;
-var salmon;
-var fish;
-
 var platforms;
 var signs;
-var weight = 2;
-//var weightText;
+var weight;
 var grave;
+var finalText;
 
 
 function create() {
-
 	createLevel();	
 	foodSpawn();
+
 	weight = 3;
-	weightText = game.add.text(-100, -70, 'weight: ' + weight);
+	weightText = game.add.text(-100, -70, 'weight: ' + Math.floor(weight, 2));
+	keyText = game.add.text(-100, -100, 'keys: ' + counter);
 	player = game.add.sprite(20, 20, 'player');
 	player.scale.setTo(0.8, 0.8);
 	player.body.bounce.y = 0.2;
@@ -66,10 +68,12 @@ function create() {
 	player.animations.add('right', [5, 6, 7, 8, 9], 10, true);
 	game.camera.follow(player);
 	player.addChild(weightText);
-
-	testText = game.add.text(-100, -170, 'weight: 2', { font: '32px arial', fill: '#000' });
-
-	//movements enabled
+	player.addChild(keyText);
+	door = game.add.sprite(game.world.width - 96, 56, 'door');
+	finalText = game.add.text(game.world.width - 200, 76,' ', { font: '84px Arial', fill: '#fff' });
+	finalText.anchor.setTo(0.5, 0.5);
+    finalText.visible = false;
+    //movements enabled
 	cursors = game.input.keyboard.createCursorKeys();
 	jump = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 }
@@ -79,45 +83,41 @@ function update() {
 	game.physics.collide(food, platforms);
 	game.physics.collide(platforms, platforms);
 	game.physics.collide(food, food);
+	game.physics.collide(key, platforms);
+	game.physics.collide(key, food);
 
 	//eating food
 	game.physics.overlap(player, food, eatFood, null, this);
-
+	//found a key
+	game.physics.overlap(player, key, foundKey, null, this);
+	//end game
+	game.physics.overlap(player, door, endGame, null, this);	
 
 	player.body.velocity.x = 0;
 
-	
-		
 	if (cursors.left.isDown)
     {
-        //  Move to the left
         player.body.velocity.x = -deltaX;
-        console.log(player.body.velocity.x);
-
         player.animations.play('left');
+        
     }
     else if (cursors.right.isDown)
     {
-        //  Move to the right
         player.body.velocity.x = deltaX;
-
         player.animations.play('right');
     }
     else
     {
-        //  Stand still
         player.animations.stop();
-
         player.frame = 5;
     }
     
-    //  Allow the player to jump if they are touching the ground.
     if (jump.isDown && player.body.touching.down)
     {
-    	
     	player.body.velocity.y = -deltaY;
-    	console.log(player.body.velocity.y);
     }
+
+
 }
 
 function createLevel(){
@@ -345,6 +345,8 @@ function foodSpawn(){
 		ribs.body.bounce.y = 0.1;
 		ribs.body.collideWorldBounds = true;
 	}
+	//key is here, because easier
+	key = game.add.sprite(Math.random()*game.world.width - 56, Math.random()*game.world.height - 145, 'key');
 
 
 }
@@ -354,30 +356,30 @@ function eatFood(player, food) {
 
 	if (food.key === "ribs"){
 		weight = weight + 3;
-		weightText.content = 'weight: ' + weight;
+		weightText.content = 'weight: ' + Math.floor(weight, 2, 10);
 		grow();
 	}
 	else if (food.key === "salad"){
 		weight = weight - 0.5;
-		weightText.content = 'weight: ' + weight;
+		weightText.content = 'weight: ' + Math.floor(weight, 2);
 		grow();	
 		
 	}
 	else if (food.key === "salmonLemon"){
 		weight = weight + 2;
-		weightText.content = 'weight: ' + weight;
+		weightText.content = 'weight: ' + Math.floor(weight, 2);
 		grow();	
 		
 	}
 	else if (food.key === "salmon"){
 		weight = weight + 1;
-		weightText.content = 'weight: ' + weight;
+		weightText.content = 'weight: ' + Math.floor(weight, 2);
 		grow();	
 		
 	}
 	else if (food.key === "bacon"){
 		weight = weight + 1;
-		weightText.content = 'weight: ' + weight;
+		weightText.content = 'weight: ' + Math.floor(weight, 2);
 		grow();	
 		
 	}
@@ -418,9 +420,43 @@ function youDead(){
 	var positionY = player.body.y;
 	player.kill();
 	grave = game.add.sprite(positionX, positionY, 'dead');
-	
+	grave.body.gravity = -0.2;
+	finalText.text = "Game over, you died.\n Click to restart";
+	finalText.visible = true;
+	weightText.visible = false;
+	keyText.visible = false;
+	game.input.onTap.addOnce(restart,this);		
 }
+function foundKey(){
+	key.kill();
+	counter = 1;
+	keyText.content = 'keys: ' + counter;
+}
+function endGame(){
+	if (counter == 1){
+		player.kill();
+		finalText.text = "Game over, you got home.\n Click to restart";
+		finalText.visible = true;
+		weightText.visible = false;
+		keyText.visible = false;
+		game.input.onTap.addOnce(restart,this);
+	}
+}
+function restart(){
+	//  A new level starts
+    
+    //resets the key count
+    counter = 0;
+    //  And brings the aliens back from the dead :)
+    food.removeAll();
+    foodSpawn();
 
+    //revives the player
+    player.revive();
+    //hides the text
+    finalText.visible = false;
+
+}
 
 </script>
 
